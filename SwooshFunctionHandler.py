@@ -6,17 +6,20 @@ from flask_ask import Ask, statement
 app = Flask(__name__)
 ask = Ask(app, '/')
 
-global game_type
-score_list=[]
-game_type=None
+
+game_info={'game_type':None, 'game_status':'NOGAME'}
 
 def run_classic():
-    game_type='classic'
+    global game_info
+    game_info['game_type']='classic'
+    game_info['game_status']='PLAYING'
     start_time = time.time()
-    score_list.append(0)
+    game_info['score'] = 0
+    print ("Starting Classic")
     while (time.time()-start_time <60):
         pass
-    game_type=None
+    print ("Ending Classic")
+    game_info['game_status']='GAMEOVER'
 
 
 
@@ -29,13 +32,20 @@ def play_classic():
 
 @ask.intent('GetScore')
 def get_score():
-    text = 'getting score'
-    return statement(text).simple_card('Hello', text)
+    global game_info
+    response_text=''
+    if game_info['game_status']=='NOGAME':
+        return statement('No game has begun yet')
+    if game_info['game_status']=='GAMEOVER':
+        response_text='Game Over. '
+    if game_info['game_type']=='classic':
+        response_text+='Your score is '+str(game_info['score'])
+    return statement(response_text)
 
 @ask.intent('GetGameType')
 def get_game_type():
     game_type_text=''
-    if game_type==None:
+    if game_info['game_status']=='NOGAME':
         game_type_text='No game has started yet'
     else:
         game_type_text='You are playing '+game_type
